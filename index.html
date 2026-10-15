@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>DS Design</title>
-<script>document.documentElement.classList.add('js');</script>
+<script>document.documentElement.classList.add('js');try{var n=navigator;if(/Mobi|Android|iPhone|iPad/i.test(n.userAgent)||(n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4))document.documentElement.classList.add('lite')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"></noscript>
 <style>
@@ -487,35 +487,6 @@ section{position:relative}
 .bdg{display:inline-block;padding:7px 16px;border-radius:99px;background:var(--pink);color:#070C0E;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
 @media(max-width:860px){.pk{grid-template-columns:1fr!important;max-width:430px}.pk>div:nth-child(2) .pc{scale:1}}
 </style>
-<style id="mobile-effects-fix">
-/* Keep the full visual effects enabled on phones */
-@media (max-width: 700px) {
-  .fx { display:block !important; }
-  .lite #bgc, #bgc { display:block !important; }
-  .hero h1 { -webkit-box-reflect: below -12px linear-gradient(transparent 35%, rgba(0,0,0,.18)); }
-  .hero h1 .l.ds>span { animation: shine2 5.5s linear 1.6s infinite !important; }
-  .aur { animation: spin 46s linear infinite !important; opacity:.75 !important; }
-  .orb { animation: drift 14s ease-in-out infinite alternate !important; }
-  .ring { animation: spin 70s linear infinite !important; }
-  .waves .wv { animation: wave 18s linear infinite !important; }
-  .sc::before, .pc::before { animation: spin 7s linear infinite !important; }
-  .sc::before { opacity:.35 !important; }
-  .pc::before { opacity:.25 !important; }
-  .cta h2 { animation: shine3 7s linear infinite !important; }
-  .cta .btn { animation: ringp 2.8s ease-out infinite !important; }
-}
-</style>
-
-<style id="mobile-performance-fix">
-@media (max-width: 700px) {
-  /* Keep the look, but reduce expensive paint effects on phones. */
-  .orb,.aur { filter: blur(42px) !important; }
-  .hero h1 { text-shadow: 0 0 18px rgba(43,201,236,.16); }
-  .ring { will-change: transform; }
-  .waves .wv,.orb,.aur,.ring,.mk,.mk::after,.fab::before { will-change: transform; }
-  .gi { animation-duration: .35s; }
-}
-</style>
 </head>
 <body>
 <div id="bar"></div><i class="fx fx1"></i><i class="fx fx2"></i><div class="cur" id="cur"></div>
@@ -854,10 +825,10 @@ section{position:relative}
   /* hero background: floating network of dots that reacts to the pointer */
   (function(){
     var cv=$('bgc');if(!cv||!cv.getContext||document.documentElement.classList.contains('lite'))return;
-    var ctx=cv.getContext('2d',{alpha:true,desynchronized:true}),dpr=Math.min(window.devicePixelRatio||1,window.innerWidth<700?1:1.5),W=0,H=0,pts=[],mx=-999,my=-999,vis=true,on=false,hero=$('hero');
+    var ctx=cv.getContext('2d'),dpr=Math.min(window.devicePixelRatio||1,1.5),W=0,H=0,pts=[],mx=-999,my=-999,vis=true,on=false,hero=$('hero');
     function size(){
       var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-      var n=Math.round(Math.min(window.innerWidth<700?18:40,Math.max(window.innerWidth<700?10:16,W*H/(window.innerWidth<700?52000:28000))));pts=[];
+      var n=Math.round(Math.min(40,Math.max(16,W*H/28000)));pts=[];
       for(var i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.4+.7});
     }
     function draw(move){
@@ -879,7 +850,7 @@ section{position:relative}
         if(md<22500){var b=(1-Math.sqrt(md)/150)*.6;ctx.strokeStyle='rgba(120,230,255,'+b.toFixed(3)+')';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mx,my);ctx.stroke()}
       }
     }
-    var lastFrame=0;function loop(ts){if(!vis){on=false;return}if(!lastFrame||ts-lastFrame>=33){draw(true);lastFrame=ts}requestAnimationFrame(loop)}
+    function loop(){if(!vis){on=false;return}draw(true);requestAnimationFrame(loop)}
     size();
     if(RM){draw(false);return}
     on=true;loop();
@@ -920,6 +891,78 @@ section{position:relative}
     document.querySelectorAll('.mag').forEach(function(el){el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect();el.style.transform='translate('+(e.clientX-r.left-r.width/2)*.3+'px,'+(e.clientY-r.top-r.height/2)*.4+'px)'});el.addEventListener('pointerleave',function(){el.style.transform=''})});
   }
 })();
+
+  /* Supabase database connection for orders and customer reviews */
+  (function(){
+    var SB_URL = 'https://nwfylfmjrhadwpbxiyiq.supabase.co';
+    var SB_KEY = 'sb_publishable_AryN6AyEqT9whwTFcEvlvA_3Tlk8q_B';
+    function saveRow(table, row){
+      return fetch(SB_URL + '/rest/v1/' + table, {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(row)
+      }).then(function(r){
+        if(!r.ok) return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); });
+      });
+    }
+    var orderLink = document.getElementById('ow');
+    if(orderLink) orderLink.addEventListener('click', function(e){
+      if(orderLink.classList.contains('dis')) return;
+      var destination = orderLink.href;
+      /* Open WhatsApp immediately so the browser does not block the new tab. */
+      window.open(destination, '_blank', 'noopener');
+      e.preventDefault();
+      var row = {
+        customer_name: (document.getElementById('on').value || '').trim(),
+        phone: (document.getElementById('op').value || '').trim(),
+        design_type: ((document.querySelector('#ochs button[aria-pressed="true"]') || {}).textContent || 'Design request').trim(),
+        details: [
+          'Request: ' + ((document.querySelector('#ochs button[aria-pressed="true"]') || {}).textContent || 'Design request').trim(),
+          'Other design: ' + (document.getElementById('oo').value || ''),
+          'Size: ' + (document.getElementById('osz').value || ''),
+          'Idea: ' + (document.getElementById('oi').value || ''),
+          'Colours: ' + (document.getElementById('oc').value || ''),
+          'Text: ' + (document.getElementById('ot').value || ''),
+          'Sample changes: ' + (document.getElementById('och').value || ''),
+          'Needed by: ' + (document.getElementById('odm').value || '') + '/' + (document.getElementById('odd').value || '') + '/' + (document.getElementById('ody').textContent || '')
+        ].filter(function(x){ return x.indexOf(': ') >= 0 && x.split(': ').slice(1).join(': ').trim(); }).join('\n')
+      };
+      saveRow('orders', row).then(function(){
+        var msg = document.getElementById('oh');
+        if(msg) msg.textContent = 'Order saved to our database. WhatsApp is open so you can send the request.';
+      }).catch(function(err){
+        console.error('Could not save order to Supabase:', err);
+        var msg = document.getElementById('oh');
+        if(msg) msg.textContent = 'WhatsApp is open, but the order could not be saved to the database. Please contact us on WhatsApp.';
+      });
+    });
+    var commentLink = document.getElementById('sw');
+    if(commentLink) commentLink.addEventListener('click', function(e){
+      if(commentLink.classList.contains('dis')) return;
+      var destination = commentLink.href;
+      window.open(destination, '_blank', 'noopener');
+      e.preventDefault();
+      saveRow('reviews', {
+        customer_name: (document.getElementById('cn').value || '').trim() || 'Anonymous',
+        rating: 5,
+        comment: (document.getElementById('cc2').value || '').trim(),
+        approved: false
+      }).then(function(){
+        var msg = document.getElementById('sh');
+        if(msg) msg.textContent = 'Comment saved for review. WhatsApp is open so you can send it too.';
+      }).catch(function(err){
+        console.error('Could not save review to Supabase:', err);
+        var msg = document.getElementById('sh');
+        if(msg) msg.textContent = 'WhatsApp is open, but the comment could not be saved to the database.';
+      });
+    });
+  })();
+
 </script>
 </body>
 </html>
